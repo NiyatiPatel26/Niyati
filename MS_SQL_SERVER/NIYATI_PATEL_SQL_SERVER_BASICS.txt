@@ -1,0 +1,436 @@
+Date:-31/08/2021
+Basic Queries:
+
+*****SELECT*****
+SELECT
+    first_name,
+    last_name
+FROM
+    sales.customers;
+
+SELECT
+    *
+FROM
+    sales.customers
+WHERE
+    state = 'CA';
+
+*****COUNT, WHERE, GROUP BY, HAVING, ORDER BY*****
+SELECT
+    city,
+    COUNT (*)
+FROM
+    sales.customers
+WHERE
+    state = 'CA'
+GROUP BY
+    city
+HAVING
+    COUNT (*) > 10
+ORDER BY
+    city;
+
+*****OFFSET FETCH*****
+SELECT
+    product_name,
+    list_price
+FROM
+    production.products
+ORDER BY
+    list_price,
+    product_name 
+OFFSET 10 ROWS 
+FETCH NEXT 10 ROWS ONLY;
+
+*****SELECT TOP*****
+SELECT TOP 1 PERCENT
+    product_name, 
+    list_price
+FROM
+    production.products
+ORDER BY 
+    list_price DESC;
+
+SELECT TOP 3 WITH TIES
+    product_name, 
+    list_price
+FROM
+    production.products
+ORDER BY 
+    list_price DESC;
+
+*****SELECT DISTINCT*****
+SELECT DISTINCT
+    city
+FROM
+    sales.customers
+ORDER BY
+    city;
+
+*****AND, OR*****
+SELECT
+    *
+FROM
+    production.products
+WHERE
+    brand_id = 1
+OR brand_id = 2
+AND list_price > 1000
+ORDER BY
+    brand_id DESC;
+
+*****BETWEEN*****
+SELECT
+    order_id,
+    customer_id,
+    order_date,
+    order_status
+FROM
+    sales.orders
+WHERE
+    order_date BETWEEN '20170115' AND '20170117'
+ORDER BY
+    order_date;
+
+*****IN, SUBQUERY*****
+SELECT
+    product_name,
+    list_price
+FROM
+    production.products
+WHERE
+    product_id IN (
+        SELECT
+            product_id
+        FROM
+            production.stocks
+        WHERE
+            store_id = 1 AND quantity >= 30
+    )
+ORDER BY
+    product_name;
+
+*****LIKE*****
+SELECT
+    customer_id,
+    first_name,
+    last_name
+FROM
+    sales.customers
+WHERE
+    last_name LIKE '%er'
+ORDER BY
+    first_name;
+
+*****JOINS*****
+SELECT  
+    c.id candidate_id,
+    c.fullname candidate_name,
+    e.id employee_id,
+    e.fullname employee_name
+FROM 
+    hr.candidates c
+    INNER JOIN hr.employees e 
+        ON e.fullname = c.fullname;
+
+SELECT  
+	c.id candidate_id,
+	c.fullname candidate_name,
+	e.id employee_id,
+	e.fullname employee_name
+FROM 
+	hr.candidates c
+	LEFT JOIN hr.employees e 
+		ON e.fullname = c.fullname;
+
+SELECT  
+    c.id candidate_id,
+    c.fullname candidate_name,
+    e.id employee_id,
+    e.fullname employee_name
+FROM 
+    hr.candidates c
+    RIGHT JOIN hr.employees e 
+        ON e.fullname = c.fullname;
+
+SELECT  
+    c.id candidate_id,
+    c.fullname candidate_name,
+    e.id employee_id,
+    e.fullname employee_name
+FROM 
+    hr.candidates c
+    FULL JOIN hr.employees e 
+        ON e.fullname = c.fullname;
+
+*****CROSS JOIN*****
+SELECT
+    product_id,
+    product_name,
+    store_id,
+    0 AS quantity
+FROM
+    production.products
+CROSS JOIN sales.stores
+ORDER BY
+    product_name,
+    store_id;
+
+*****GROUPING SETS*****
+SELECT
+	brand,
+	category,
+	SUM (sales) sales
+FROM
+	sales.sales_summary
+GROUP BY
+	GROUPING SETS (
+		(brand, category),
+		(brand),
+		(category),
+		()
+	)
+ORDER BY
+	brand,
+	category;
+
+*****CUBE*****
+SELECT
+    brand,
+    category,
+    SUM (sales) sales
+FROM
+    sales.sales_summary
+GROUP BY
+    CUBE(brand, category);
+
+*****ROLLUP*****
+SELECT
+    category,
+    brand,
+    SUM (sales) sales
+FROM
+    sales.sales_summary
+GROUP BY
+    ROLLUP (category, brand);
+
+*****EXISTS*****
+SELECT
+    customer_id,
+    first_name,
+    last_name
+FROM
+    sales.customers
+WHERE
+    EXISTS (SELECT NULL)
+ORDER BY
+    first_name,
+    last_name;
+
+*****UNION*****
+SELECT
+    first_name,
+    last_name
+FROM
+    sales.staffs
+UNION
+SELECT
+    first_name,
+    last_name
+FROM
+    sales.customers;
+
+*****INTERSECT*****
+SELECT
+    city
+FROM
+    sales.customers
+INTERSECT
+SELECT
+    city
+FROM
+    sales.stores
+ORDER BY
+    city;
+
+*****EXCEPT*****
+SELECT
+    product_id
+FROM
+    production.products
+EXCEPT
+SELECT
+    product_id
+FROM
+    sales.order_items;
+
+*****COMMON TABLE EXPRESSIONS(CTE)*****
+WITH cte_sales AS (
+    SELECT 
+        staff_id, 
+        COUNT(*) order_count  
+    FROM
+        sales.orders
+    WHERE 
+        YEAR(order_date) = 2018
+    GROUP BY
+        staff_id
+
+)
+SELECT
+    AVG(order_count) average_orders_by_staff
+FROM 
+    cte_sales;
+
+*****INSERT INTO SELECT*****
+INSERT INTO 
+    sales.addresses (street, city, state, zip_code) 
+SELECT
+    street,
+    city,
+    state,
+    zip_code
+FROM
+    sales.stores
+WHERE
+    city IN ('Santa Cruz', 'Baldwin')
+
+Date:-01/09/2021
+
+*****UPDATE*****
+UPDATE sales.taxes
+SET updated_at = GETDATE();
+
+*****DELETE*****
+DELETE TOP (21)
+FROM production.product_history;
+
+*****MERGE*****
+MERGE sales.category t 
+    USING sales.category_staging s
+ON (s.category_id = t.category_id)
+WHEN MATCHED
+    THEN UPDATE SET 
+        t.category_name = s.category_name,
+        t.amount = s.amount
+WHEN NOT MATCHED BY TARGET 
+    THEN INSERT (category_id, category_name, amount)
+         VALUES (s.category_id, s.category_name, s.amount)
+WHEN NOT MATCHED BY SOURCE 
+    THEN DELETE;
+
+*****CREATE NEW DATABASE*****
+CREATE DATABASE TestDb;
+
+*****DROP DATABASE*****
+DROP DATABASE IF EXISTS TestDb;
+
+*****CREATE SCHEMA*****
+CREATE SCHEMA customer_services;
+GO
+
+*****ALTER SCHEMA*****
+ALTER SCHEMA sales TRANSFER OBJECT::dbo.offices;  
+
+*****DROP SCHEMA*****
+DROP SCHEMA customer_services;
+
+*****CREATE TABLE , IDENTITY COLUMN ,PRIMARY KEY , FOREIGN KEY, NOT NULL CONSTRAINTS*****
+CREATE TABLE sales.visits (
+    visit_id INT PRIMARY KEY IDENTITY (1, 1),
+    first_name VARCHAR (50) NOT NULL,
+    last_name VARCHAR (50) NOT NULL,
+    visited_at DATETIME,
+    phone VARCHAR(20),
+    store_id INT NOT NULL,
+    FOREIGN KEY (store_id) REFERENCES sales.stores (store_id)
+);
+
+*****SEQUENCE*****
+CREATE SEQUENCE item_counter
+    AS INT
+    START WITH 10
+    INCREMENT BY 10;
+
+*****ADD COLUMN*****
+ALTER TABLE sales.quotations 
+ADD description VARCHAR (255) NOT NULL;
+
+*****ALTER COLUMN*****
+ALTER TABLE sales.quotations ALTER COLUMN description VARCHAR (150);
+
+*****DROP COLUMN*****
+ALTER TABLE sales.quotations
+DROP COLUMN description;
+
+*****COMPUTED COLUMNS*****
+CREATE TABLE persons
+(
+    person_id  INT PRIMARY KEY IDENTITY, 
+    first_name NVARCHAR(100) NOT NULL, 
+    last_name  NVARCHAR(100) NOT NULL, 
+    dob        DATE
+);
+
+INSERT INTO 
+    persons(first_name, last_name, dob)
+VALUES
+    ('John','Doe','1990-05-01'),
+    ('Jane','Doe','1995-03-01');
+
+SELECT
+    person_id,
+    first_name + ' ' + last_name AS full_name,
+    dob
+FROM
+    persons
+ORDER BY
+    full_name;
+
+*****RENAME TABLE*****
+EXEC sp_rename 'sales.quotations', 'Quotations';
+
+*****DROP TABLE*****
+CREATE TABLE sales.delivery (
+    delivery_id INT PRIMARY KEY,
+    delivery_note VARCHAR (255) NOT NULL,
+    delivery_date DATE NOT NULL
+);
+DROP TABLE sales.delivery;
+
+*****TRUNCATE TABLE*****
+TRUNCATE TABLE Quotations;
+
+*****SYNONYMS*****
+CREATE SYNONYM orders FOR sales.orders;
+
+*****SELECT INTO*****
+CREATE SCHEMA marketing;
+GO
+SELECT 
+    *
+INTO 
+    marketing.customers
+FROM 
+    sales.customers;
+
+*****CHECK CONSTRAINT*****
+CREATE SCHEMA test;
+GO
+
+CREATE TABLE test.products(
+    product_id INT IDENTITY PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL,
+    unit_price DEC(10,2) CHECK(unit_price > 0)
+);
+
+*****UNIQUE CONSTRAINT*****
+CREATE SCHEMA hr;
+GO
+
+CREATE TABLE hr.persons(
+    person_id INT IDENTITY PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE
+);
