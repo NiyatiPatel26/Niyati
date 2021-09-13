@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+
+<body>
+
+    <script>
+        //Variables:let,var,const
+        let hello = "I'm JavaScript!";
+        let message;
+        message = hello;
+        // now two variables hold the same data
+        alert(hello); // Hello world!
+        alert(message); // Hello world!
+
+        const BIRTHDAY = '18.04.1982'; 
+        alert(BIRTHDAY);
+
+        //Datatypes:NaN, String, Boolean, Null, Undefined
+        alert( 1 / 0 );
+
+        alert( "Not a number" / 2 + 5 ); // NaN
+
+        let name = "John";
+        // embed a variable
+        alert( `Hello, ${name}!` );
+
+        let isGreater = 4 > 1;
+        alert( isGreater ); // true (the comparison result is "yes")
+
+        let age = null;
+
+        let age;
+        alert(age); // shows "undefined"
+
+        //Alert, Prompt, Confirm
+        let age = prompt('How old are you?', 100);
+        alert(`You are ${age} years old!`); // You are 100 years old!
+
+        let isBoss = confirm("Are you the boss?");
+        alert( isBoss ); // true if OK is pressed
+    </script>
+
+</body>
+
+</html>
